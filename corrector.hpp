@@ -84,11 +84,44 @@ inline std::ostream& operator<<(std::ostream& out, const correctors_mode mode)
 
 //-----------------------------------------------------------------------
 
-/** @brief Basic corrector.
+/** @brief Basic discrete corrector.
  *  @tparam mode corrector mode.
  *  @tparam arithmetic_t Type used for arithmeticd. Default is float.
  *  @tparam sampling_t Sampling period type. Default is std::chrono::milliseconds.
  *  @tparam timestamp_t Timestamp type. Default is std::chrono::time_point<std::chrono::system_clock>.
+ *
+ * @details Notes about computations
+ *    NOTATIONS :
+ *    e(t) : error
+ *    u(t) : output of the corrector
+ *
+ *    //------------------------------------------------------
+ *
+ *    P Corrector :
+ *    u(t) = p * e(t)
+ *
+ *    //------------------------------------------------------
+ *
+ *    I Corrector :
+ *    u(t) = (1/i)*integral(e(t))
+ *
+ *    //------------------------------------------------------
+ *
+ *    PI Corrector :
+ *    u(t) = p*(e(t) + (1/i)*integral(e(t))
+ *
+ *    //------------------------------------------------------
+ *
+ *    PID Corrector :
+ *    u(t) =  (p * e(t)) +
+ *            (i * integral(e(t)) +
+ *            (d * derivative(e(t))
+ *
+ *    //------------------------------------------------------
+ *
+ *    N.B. :
+ *    1) Derivative is computed using slope approximation (new_error - previous_error) / sample_time.
+ *    2) Integral is computed using rectangle method.
  */
 template<correctors_mode mode,
          typename arithmetic_t = float,
