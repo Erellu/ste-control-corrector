@@ -287,9 +287,9 @@ public:
 
     /**
      *  @brief Sets the corrector sampling period.
-     *  @param p New proportional factor.
+     *  @param p New sampling period.
      */
-    void set_p(const sampling_t ts){_parameters.ts = ts;}
+    void set_ts(const sampling_t ts){_parameters.ts = ts;}
 
     //----------------------------------------------------------------
 
