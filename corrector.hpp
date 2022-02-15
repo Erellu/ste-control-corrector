@@ -81,7 +81,6 @@ inline std::ostream& operator<<(std::ostream& out, const correctors_mode mode)
     return out;
 };
 
-
 //-----------------------------------------------------------------------
 
 /** @brief Basic discrete corrector.
@@ -135,6 +134,11 @@ template<correctors_mode mode,
                                      std::is_same_v<sampling_t, std::chrono::seconds> ||
                                      std::is_same_v<sampling_t, std::chrono::minutes> ||
                                      std::is_same_v<sampling_t, std::chrono::hours>
+                                     >,
+         typename = std::enable_if_t<(mode == correctors_mode::p) ||
+                                     (mode == correctors_mode::i) ||
+                                     (mode == correctors_mode::pi) ||
+                                     (mode == correctors_mode::pid)
                                      >
          >
 class corrector
@@ -179,7 +183,7 @@ public:
     /*********************************************************************/
 
     /// Constructor.
-    corrector(const create_info_t& info) : _state {}
+    inline corrector(const create_info_t& info) : _state {}
     {
         _parameters.ts = info.ts;
         _parameters.p  = info.p;
@@ -195,7 +199,7 @@ public:
     /*                             Operators                             */
     /*********************************************************************/
 
-    friend std::ostream& operator<<(std::ostream& out, const corrector& c)
+    inline friend std::ostream& operator<<(std::ostream& out, const corrector& c)
     {
 
         return out << "ste::control::corrector " << std::addressof(c) << "\n"
@@ -223,7 +227,7 @@ public:
      *  @param system_input Current input for the system.
      *  @param system_output Current system output.
      */
-    void update(const arithmetic_t system_input, const arithmetic_t system_output)
+    inline void update(const arithmetic_t system_input, const arithmetic_t system_output)
     {
         const arithmetic_t error = system_input - system_output;
         const arithmetic_t ts = static_cast<arithmetic_t>(this->ts().count());
@@ -231,7 +235,7 @@ public:
         _state.integral += ts;
         _state.timestamp = static_cast<timestamp_t>(std::chrono::system_clock::now());
 
-        const auto compute = [this, ts, error]() -> arithmetic_t
+        const auto compute = [this, ts, error]() constexpr -> arithmetic_t
         {
             if constexpr (mode == correctors_mode::p)
             {
@@ -260,6 +264,10 @@ public:
                         (i * _state.integral ) +
                         (d * (error - _state.error) / ts);
             }
+            else
+            {
+                return arithmetic_t{}; //That cannot happen due to enable_if, but this silences a warning
+            }
         };
 
         //Update the current states
@@ -276,7 +284,7 @@ public:
     /**
      *  @brief Resets the corrector states.
      */
-    void reset()
+    inline void reset()
     {
         _state = state_t{};
     }
@@ -289,7 +297,7 @@ public:
      *  @brief Sets the corrector sampling period.
      *  @param p New sampling period.
      */
-    void set_ts(const sampling_t ts){_parameters.ts = ts;}
+    inline void set_ts(const sampling_t ts){_parameters.ts = ts;}
 
     //----------------------------------------------------------------
 
@@ -297,7 +305,7 @@ public:
      *  @brief Sets the corrector proportional factor.
      *  @param p New proportional factor.
      */
-    void set_p(const arithmetic_t p){_parameters.p = p;};
+    inline void set_p(const arithmetic_t p){_parameters.p = p;};
 
     //----------------------------------------------------------------
 
@@ -305,7 +313,7 @@ public:
      *  @brief Sets the corrector integral factor.
      *  @param p New proportional factor.
      */
-    void set_i(const arithmetic_t i){_parameters.i = i;};
+    inline void set_i(const arithmetic_t i){_parameters.i = i;};
 
     //----------------------------------------------------------------
 
@@ -313,7 +321,7 @@ public:
      *  @brief Sets the corrector derivative factor.
      *  @param p New proportional factor.
      */
-    void set_d(const arithmetic_t d){_parameters.d = d;};
+    inline void set_d(const arithmetic_t d){_parameters.d = d;};
 
     //----------------------------------------------------------------
 
@@ -321,7 +329,7 @@ public:
      *  @brief Sets the corrector upper saturation value.
      *  @param max New upper saturation value.
      */
-    void set_max(const arithmetic_t max){_parameters.max = max;};
+    inline void set_max(const arithmetic_t max){_parameters.max = max;};
 
     //----------------------------------------------------------------
 
@@ -329,7 +337,7 @@ public:
      *  @brief Sets the corrector lower saturation value.
      *  @param min New lower saturation value.
      */
-    void set_min(const arithmetic_t min){_parameters.min = min;};
+    inline void set_min(const arithmetic_t min){_parameters.min = min;};
 
     //----------------------------------------------------------------
 
@@ -338,7 +346,7 @@ public:
      *  @param min New lower saturation value.
      *  @param max New upper saturation value..
      */
-    void set_range(const arithmetic_t min, const arithmetic_t max)
+    inline void set_range(const arithmetic_t min, const arithmetic_t max)
     {
         if(min > max)
         {
@@ -354,54 +362,54 @@ public:
     /**
      *  @brief Returns the corrector last timestamp (updated each time update is called).
      */
-    timestamp_t timestamp() const{return _state.timestamp;}
+    inline timestamp_t timestamp() const{return _state.timestamp;}
 
     /**
      *  @brief Returns the corrector sampling period.
      */
-    sampling_t ts() const{return _parameters.ts.load();}
+    inline sampling_t ts() const{return _parameters.ts.load();}
 
     //----------------------------------------------------------------
 
     /**
      *  @brief Returns the corrector proportional factor.
      */
-    arithmetic_t p() const{return _parameters.p.load();}
+    inline arithmetic_t p() const{return _parameters.p.load();}
 
     //----------------------------------------------------------------
 
     /**
      *  @brief Returns the corrector integral factor.
      */
-    arithmetic_t i() const{return _parameters.i.load();}
+    inline arithmetic_t i() const{return _parameters.i.load();}
 
     //----------------------------------------------------------------
 
     /**
      *  @brief Returns the corrector derivative factor.
      */
-    arithmetic_t d() const{return _parameters.d.load();}
+    inline arithmetic_t d() const{return _parameters.d.load();}
 
     //----------------------------------------------------------------
 
     /**
      *  @brief Returns the corrector upper saturation value.
      */
-    arithmetic_t max() const{return _parameters.max.load();}
+    inline arithmetic_t max() const{return _parameters.max.load();}
 
     //----------------------------------------------------------------
 
     /**
      *  @brief Returns the corrector lower saturation value.
      */
-    arithmetic_t min() const{return _parameters.min.load();}
+    inline arithmetic_t min() const{return _parameters.min.load();}
 
     //----------------------------------------------------------------
 
     /**
      *  @brief Returns the current corrector output.
      */
-    arithmetic_t output() const{return _state.output;}
+    inline arithmetic_t output() const{return _state.output;}
 
 private:
 
