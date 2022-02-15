@@ -121,6 +121,36 @@ inline std::ostream& operator<<(std::ostream& out, const correctors_mode mode)
  *    N.B. :
  *    1) Derivative is computed using slope approximation (new_error - previous_error) / sample_time.
  *    2) Integral is computed using rectangle method.
+ *
+ *    @example
+ *
+ *    #include <corrector.hpp>
+ *
+ *    #include <iostream>
+ *
+ *    int main()
+ *    {
+ *        ste::control::corrector<ste::control::correctors_mode::p> c(
+ *                    {
+ *                        .ts          = std::chrono::milliseconds(25), //Sampling period. Type can be adjusted by template parameter.
+ *                        .p           = 5,                             //P factor
+ *                        .i           = 1,                             //Ignored, mode is p
+ *                        .d           = 0,                             //Idem
+ *                        .saturations = {}                             //Default saturation values
+ *                    });
+ *
+ *        std::cout << c << std::endl;
+ *
+ *        c.update(1,0); //Update the corrector output: the system input is 1 and its output is 0.
+ *
+ *        std::cout << c << std::endl;
+ *
+ *        c.reset(); //Reset the corrector.
+ *
+ *        std::cout << c << std::endl;
+ *
+ *        return 0;
+ *    }
  */
 template<correctors_mode mode,
          typename arithmetic_t = float,
